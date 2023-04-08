@@ -1,0 +1,7 @@
+@import "../vars.scss";
+
+.vertical_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}

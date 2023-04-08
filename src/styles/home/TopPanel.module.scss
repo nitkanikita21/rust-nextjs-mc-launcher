@@ -1,0 +1,26 @@
+@import "../vars.scss";
+
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    
+    background-color: $color-main;
+
+    height: 90px;
+
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.button_container {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 15px;
+}
+
+.launcher_name {
+    text-transform: uppercase;
+    font-weight: 900;
+}

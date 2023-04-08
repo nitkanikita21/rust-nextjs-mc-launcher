@@ -1,0 +1,19 @@
+.head_skin {
+  height: 32px;
+
+  margin-right: 15px;
+}
+
+.dialog {
+  &_text {
+    text-align: center;
+    justify-content: space-between;
+    
+    margin-bottom: 30px;
+  }
+  &_btns {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+}
