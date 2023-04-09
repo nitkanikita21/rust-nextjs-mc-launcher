@@ -2,6 +2,7 @@
   "extends": "next/core-web-vitals",
 
   "rules": {
-    "indent": "off"
+    "indent": "off",
+    "quote-props" : "off"
   }
 }

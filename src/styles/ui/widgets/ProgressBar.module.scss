@@ -1,0 +1,33 @@
+@import "@/styles/vars.scss";
+
+.box {
+  display: block;
+  background-color: $color-main-lighten;
+
+  border-radius: 15px;
+}
+
+.test {
+  width: 100%;
+}
+
+.bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  text-align: center;
+  align-content: center;
+  align-items: center;
+  
+  background: $color-accent;
+
+  border-radius: 15px;
+
+  padding: 10px 0px;
+  transition: all 200ms;
+}
+
+.title {
+  margin-right: 10px;
+}
+
