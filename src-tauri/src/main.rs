@@ -10,6 +10,11 @@ mod services;
 #[tokio::main]
 async fn main() {
     services::core::init().await;
+
+    let jvms = services::core::java::get_available_jvms().await;
+
+    println!("{:?}", jvms);
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             command::login::login,

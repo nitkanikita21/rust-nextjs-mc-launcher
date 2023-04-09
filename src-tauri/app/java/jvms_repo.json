@@ -1,0 +1,10 @@
+[
+  {
+    "url": "https://download.java.net/java/GA/jdk20/bdc68b4b9cbc4ebcb30745c85038d91d/36/GPL/openjdk-20_windows-x64_bin.zip",
+    "info": {
+      "java_version": 17,
+      "name": "openjdk",
+      "fullname": "openjdk-20"
+    }
+  }
+]
