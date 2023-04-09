@@ -1,8 +1,11 @@
 use std::borrow::Cow;
 
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Runtime};
 
-use crate::{domain, services};
+use crate::{
+    domain::{self, login::LoginStatus},
+    services,
+};
 
 #[tauri::command]
 pub async fn is_logged_in() -> bool {
@@ -34,21 +37,21 @@ pub async fn get_user_head_render_url() -> String {
 }
 
 #[tauri::command]
-pub async fn login(app_handle: AppHandle) {
+pub async fn login<R: Runtime>(app_handle: AppHandle<R>) -> Result<(), String> {
     let locked = &mut domain::login::LOGIN_INFO.lock().await;
     services::auth::login_in_ms(locked, &app_handle)
         .await
-        .expect("error logging in");
+        .map_err(|e| format!("Error logging in: {e}"))?;
     app_handle
-        .emit_all("login_status", {})
-        .expect("error emitting");
+        .emit_all("login_status", LoginStatus::LoggedIn)
+        .map_err(|e| format!("error emitting: {e}"))
 }
 
 #[tauri::command]
-pub async fn logout(app_handle: AppHandle) {
+pub async fn logout<R: Runtime>(app_handle: AppHandle<R>) -> Result<(), String> {
     let mut info = domain::login::LOGIN_INFO.lock().await;
     *info = None;
     app_handle
-        .emit_all("login_status", ())
-        .expect("error emitting");
+        .emit_all("login_status", LoginStatus::LoggedOut)
+        .map_err(|e| format!("error emitting: {e}"))
 }

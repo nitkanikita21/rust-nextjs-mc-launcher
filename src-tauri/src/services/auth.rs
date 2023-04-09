@@ -6,7 +6,7 @@ use oauth2::{
     Scope, TokenResponse, TokenUrl,
 };
 use reqwest::{header, Client, Url};
-use tauri::AppHandle;
+use tauri::{AppHandle, Runtime};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
 
@@ -55,7 +55,10 @@ pub async fn get_profile_info(
     Ok(info)
 }
 
-pub async fn login_in_ms(login: &mut Option<LoginInfo>, app: &AppHandle) -> anyhow::Result<()> {
+pub async fn login_in_ms<R: Runtime>(
+    login: &mut Option<LoginInfo>,
+    app: &AppHandle<R>,
+) -> anyhow::Result<()> {
     let client = BasicClient::new(
         ClientId::new("01df9ec4-9a16-4251-aaf5-cbadb01eb310".to_string()),
         None,
