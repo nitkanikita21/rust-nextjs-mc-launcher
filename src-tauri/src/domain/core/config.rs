@@ -1,48 +1,49 @@
 use std::{
-    env,
-    fs::{create_dir, File},
-    io::{BufReader, Read, Write},
-    path::PathBuf,
+    borrow::Cow,
+    fs::{self, File},
+    io::{BufReader, Write},
+    path::Path,
 };
 
 use anyhow::Ok;
-use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
-use tokio::fs::create_dir_all;
 
-use crate::services::core::get_app_dir;
+use crate::services::core::app_dir;
 
-pub async fn load_config<T: Serialize + Default + DeserializeOwned>(
-    path: PathBuf,
-    save: bool,
-) -> anyhow::Result<T> {
-    let add_dir = get_app_dir().await;
-    let cfg_file_path = add_dir.join(path);
+pub fn load_config<T>(path: impl AsRef<Path>, save: bool) -> anyhow::Result<T>
+where
+    T: Serialize + Default + DeserializeOwned,
+{
+    let cfg_file_path = app_dir().join(path);
 
-    if !cfg_file_path.parent().unwrap().exists() {
-        create_dir_all(cfg_file_path.parent().unwrap()).await?;
+    let cfg_file_parent = cfg_file_path
+        .parent()
+        .map(Cow::Borrowed)
+        .unwrap_or_default();
+    if !cfg_file_parent.exists() {
+        fs::create_dir_all(cfg_file_parent)?;
     }
     if !cfg_file_path.exists() {
-        let mut __cfg_file = File::create(&cfg_file_path)?;
-        let default = T::default();
+        let mut cfg_file = File::create(&cfg_file_path)?;
+        let default_cfg = T::default();
 
-        __cfg_file.write_all(serde_json::to_string(&default)?.as_str().as_bytes())?;
+        cfg_file.write_all(serde_json::to_string(&default_cfg)?.as_str().as_bytes())?;
 
-        Ok(default)
-    } else {
-        let mut cfg_file = &File::open(cfg_file_path)?;
-        let buf = BufReader::new(cfg_file);
-
-        let a: T = serde_json::from_reader(buf)?;
-        if save {
-            cfg_file.write_all(serde_json::to_string(&a)?.as_str().as_bytes())?;
-        }
-
-        Ok(a)
+        return Ok(default_cfg);
     }
+
+    let cfg_file = File::open(&cfg_file_path)?;
+    let buf = BufReader::new(cfg_file);
+
+    let cfg: T = serde_json::from_reader(buf)?;
+    if save {
+        let mut cfg_file = File::create(cfg_file_path)?; // otherwise it will append to the file, as the cursor is already moved
+        cfg_file.write_all(serde_json::to_string(&cfg)?.as_str().as_bytes())?;
+    }
+
+    Ok(cfg)
 }
 
-#[async_trait]
-pub trait Configurable<T: Serialize + Default + DeserializeOwned> {
-    async fn load(path: PathBuf, save: bool) -> anyhow::Result<T>;
+pub trait Configurable: Serialize + Default + DeserializeOwned {
+    fn load(path: impl AsRef<Path>, save: bool) -> anyhow::Result<Self>;
 }

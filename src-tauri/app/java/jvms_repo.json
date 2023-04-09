@@ -4,7 +4,7 @@
     "info": {
       "java_version": 17,
       "name": "openjdk",
-      "fullname": "openjdk-20"
+      "full_name": "openjdk-20"
     }
   }
 ]

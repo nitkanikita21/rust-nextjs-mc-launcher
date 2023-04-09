@@ -1,22 +1,22 @@
-const DEVICE_CODE_URL: &str = "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode";
-const MSA_AUTHORIZE_URL: &str = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize";
-const MSA_TOKEN_URL: &str = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
-const MINECRAFT_API_URL: &str = "https://api.minecraftservices.com";
-
-use minecraft_msa_auth::{MinecraftAuthenticationResponse, MinecraftAuthorizationFlow, MinecraftAccessToken};
+use minecraft_msa_auth::{MinecraftAccessToken, MinecraftAuthorizationFlow};
 use oauth2::basic::BasicClient;
 use oauth2::reqwest::async_http_client;
 use oauth2::{
     AuthType, AuthUrl, AuthorizationCode, ClientId, CsrfToken, PkceCodeChallenge, RedirectUrl,
     Scope, TokenResponse, TokenUrl,
 };
-use reqwest::{Client, Url};
-use tauri::AppHandle;
+use reqwest::{header, Client, Url};
+use tauri::{AppHandle, Runtime};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
 
 use crate::domain;
 use crate::domain::login::LoginInfo;
+
+const DEVICE_CODE_URL: &str = "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode";
+const MSA_AUTHORIZE_URL: &str = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize";
+const MSA_TOKEN_URL: &str = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+const MINECRAFT_API_URL: &str = "https://api.minecraftservices.com";
 
 lazy_static::lazy_static! {
     pub static ref HTTP_CLIENT: reqwest::Client = reqwest::Client::new();
@@ -26,30 +26,39 @@ fn get_mcapi_endpoint_url(endpoint: &str) -> String {
     format!("{}{}", MINECRAFT_API_URL, "/minecraft/profile").to_string()
 }
 
-pub async fn get_profile_info(token: &MinecraftAccessToken) -> Result<domain::login::ProfileInfoResponce, anyhow::Error> {
+pub async fn get_profile_info(
+    token: &MinecraftAccessToken,
+) -> Result<domain::login::ProfileInfoResponse, anyhow::Error> {
     let access_token = token;
 
+    #[cfg(debug_assertions)] // This is a sensitive information, so we don't want to print it in release builds
     println!("{}", access_token.as_ref());
 
-    let responce = HTTP_CLIENT
+    let response = HTTP_CLIENT
         .get(get_mcapi_endpoint_url("/minecraft/profile"))
+        .header(header::AUTHORIZATION, {
+            let mut auth =
+                header::HeaderValue::from_str(format!("Bearer {}", access_token.as_ref()).as_str())
+                    .unwrap();
+            auth.set_sensitive(true); // So that it doesn't get printed in Debug representation
+            auth
+        })
         .header(
-            reqwest::header::AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(format!("Bearer {}", access_token.as_ref()).as_str()).unwrap(),
-        )
-        .header(
-            reqwest::header::CONTENT_LENGTH,
-            reqwest::header::HeaderValue::from_static("0"),
+            header::CONTENT_LENGTH,
+            header::HeaderValue::from_static("0"),
         )
         .send()
         .await?;
 
-    let info: domain::login::ProfileInfoResponce = responce.json().await.expect("error unwrapping");
+    let info: domain::login::ProfileInfoResponse = response.json().await.expect("error unwrapping");
 
     Ok(info)
 }
 
-pub async fn login_in_ms(login: &mut Option<LoginInfo>, app: &AppHandle) -> anyhow::Result<()> {
+pub async fn login_in_ms<R: Runtime>(
+    login: &mut Option<LoginInfo>,
+    app: &AppHandle<R>,
+) -> anyhow::Result<()> {
     let client = BasicClient::new(
         ClientId::new("01df9ec4-9a16-4251-aaf5-cbadb01eb310".to_string()),
         None,
@@ -85,11 +94,11 @@ pub async fn login_in_ms(login: &mut Option<LoginInfo>, app: &AppHandle) -> anyh
     // );
 
     // open::that(authorize_url.to_string()).expect("error opening");
-    
-    let oauth2Window = tauri::WindowBuilder::new(
+
+    let oauth2_window = tauri::WindowBuilder::new(
         app,
         "Auth",
-        tauri::WindowUrl::External(authorize_url.to_string().parse().unwrap())
+        tauri::WindowUrl::External(authorize_url.to_string().parse().unwrap()),
     )
     .inner_size(470f64, 500f64)
     .title("Microsoft Oauth2")
@@ -102,27 +111,26 @@ pub async fn login_in_ms(login: &mut Option<LoginInfo>, app: &AppHandle) -> anyh
         stream.readable().await?;
         let mut stream = BufReader::new(stream);
 
-        let code;
-        let state;
-        {
+        let (code, state): (AuthorizationCode, CsrfToken) = {
             let mut request_line = String::new();
             stream.read_line(&mut request_line).await?;
 
             let redirect_url = request_line.split_whitespace().nth(1).unwrap();
             let url = Url::parse(&("http://localhost".to_string() + redirect_url))?;
 
-            let (_key, value) = url
+            let code = url
                 .query_pairs()
-                .find(|(key, _value)| key == "code")
+                .find_map(|(key, value)| (key == "code").then_some(value))
                 .unwrap();
-            code = AuthorizationCode::new(value.into_owned());
+            let code = AuthorizationCode::new(code.into_owned());
 
-            let (_key, value) = url
+            let token = url
                 .query_pairs()
-                .find(|(key, _value)| key == "state")
+                .find_map(|(key, value)| (key == "state").then_some(value))
                 .unwrap();
-            state = CsrfToken::new(value.into_owned());
-        }
+
+            (code, CsrfToken::new(token.into_owned()))
+        };
 
         let message = "";
         let response = format!(
@@ -159,10 +167,10 @@ pub async fn login_in_ms(login: &mut Option<LoginInfo>, app: &AppHandle) -> anyh
         *login = Some(domain::login::LoginInfo {
             access_token: mc_token.access_token().clone(),
             username: mc_token.username().clone(),
-            profile: get_profile_info(&mc_token.access_token()).await.unwrap()
+            profile: get_profile_info(&mc_token.access_token()).await.unwrap(),
         });
 
-        oauth2Window.close()?;
+        oauth2_window.close()?;
 
         break;
     }

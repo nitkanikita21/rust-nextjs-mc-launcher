@@ -1,12 +1,11 @@
 use std::{
     fmt::{Debug, Display},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use crate::services::{self, core::java};
+use crate::services::core::java;
 
 use super::config::{load_config, Configurable};
 
@@ -14,13 +13,13 @@ use super::config::{load_config, Configurable};
 pub struct JvmInfo {
     java_version: u8,
     name: String,
-    fullname: String,
+    full_name: String,
 }
 impl Display for JvmInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}-{}", self.name, self.java_version)?;
-        if self.fullname != self.name {
-            write!(f, "({})", self.fullname)?;
+        if self.full_name != self.name {
+            write!(f, "({})", self.full_name)?;
         }
 
         Ok(())
@@ -43,26 +42,20 @@ impl JvmLocation {
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct JvmLocationsInfo(pub Vec<JvmLocation>);
 
-#[async_trait]
-impl Configurable<JvmLocationsInfo> for JvmLocationsInfo {
-    async fn load(path: PathBuf, save: bool) -> anyhow::Result<JvmLocationsInfo> {
+impl Configurable for JvmLocationsInfo {
+    fn load(path: impl AsRef<Path>, save: bool) -> anyhow::Result<Self> {
         println!("test");
-        let list: JvmLocationsInfo = load_config(path, save).await?;
+        let list: JvmLocationsInfo = load_config(path, save)?;
 
-        let filtered = list.0
-            .iter()
-            .filter(|&x| java::check_valid_jvm(x.clone()))
-            .cloned()
-            .collect();
+        let filtered = list.0.into_iter().filter(java::check_valid_jvm).collect();
 
         Ok(JvmLocationsInfo(filtered))
     }
 }
 
 pub mod verified {
-    use std::path::PathBuf;
+    use std::path::Path;
 
-    use async_trait::async_trait;
     use serde::{Deserialize, Serialize};
 
     use crate::domain::core::config::{load_config, Configurable};
@@ -78,10 +71,9 @@ pub mod verified {
     #[derive(Serialize, Deserialize, Clone, Default, Debug)]
     pub struct JvmRepo(pub Vec<JvmDownloadSource>);
 
-    #[async_trait]
-    impl Configurable<JvmRepo> for JvmRepo {
-        async fn load(path: PathBuf, save: bool) -> anyhow::Result<JvmRepo> {
-            load_config(path, save).await
+    impl Configurable for JvmRepo {
+        fn load(path: impl AsRef<Path>, save: bool) -> anyhow::Result<Self> {
+            load_config(path, save)
         }
     }
 }
