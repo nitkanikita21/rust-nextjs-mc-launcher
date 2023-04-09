@@ -5,16 +5,21 @@ use std::{
     path::Path,
 };
 
-use anyhow::Ok;
+use anyhow::{anyhow, Ok};
 use serde::{de::DeserializeOwned, Serialize};
+use tauri::PathResolver;
 
-use crate::services::core::app_dir;
-
-pub fn load_config<T>(path: impl AsRef<Path>, save: bool) -> anyhow::Result<T>
+pub fn load_config<T>(
+    resolver: PathResolver,
+    path: impl AsRef<Path>,
+    save: bool,
+) -> anyhow::Result<T>
 where
     T: Serialize + Default + DeserializeOwned,
 {
-    let cfg_file_path = app_dir().join(path);
+    let cfg_file_path = resolver
+        .resolve_resource(&path)
+        .ok_or_else(|| anyhow!("Failed to resolve resource: {}", path.as_ref().display()))?;
 
     let cfg_file_parent = cfg_file_path
         .parent()
@@ -45,5 +50,5 @@ where
 }
 
 pub trait Configurable: Serialize + Default + DeserializeOwned {
-    fn load(path: impl AsRef<Path>, save: bool) -> anyhow::Result<Self>;
+    fn load(resolver: PathResolver, path: impl AsRef<Path>, save: bool) -> anyhow::Result<Self>;
 }

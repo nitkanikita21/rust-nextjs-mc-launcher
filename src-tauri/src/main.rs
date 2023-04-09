@@ -9,13 +9,13 @@ mod services;
 
 #[tokio::main]
 async fn main() {
-    _ = services::core::app_dir(); // init app dir
-
-    let jvms = services::core::java::get_available_jvms().await;
-
-    println!("{:?}", jvms);
-
     tauri::Builder::default()
+        .setup(|app| {
+            let resolver = app.path_resolver();
+            let jvms = services::core::java::get_available_jvms(resolver);
+            println!("{:?}", jvms);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             command::login::login,
             command::login::logout,
