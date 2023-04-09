@@ -16,7 +16,7 @@ export default function Login() {
 
 
   function updateLoginStatus() {
-    invoke<boolean>("is_logined")
+    invoke<boolean>("is_logged_in")
       .then(n => setLogined(n));
   }
   function updateNickname() {
@@ -40,11 +40,11 @@ export default function Login() {
     updateNickname();
     updateSkinUrl();
 
-    listen("login_status", () => {
+    listen("login_status", (a) => {
       updateLoginStatus();
       updateNickname();
       updateSkinUrl();
-      console.log("login_status");
+      console.log(a);
     });
   });
 
