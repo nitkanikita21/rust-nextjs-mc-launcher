@@ -38,9 +38,6 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [
-        "./app/**/*.json"
-      ],
       "shortDescription": "",
       "targets": "all",
       "windows": {
