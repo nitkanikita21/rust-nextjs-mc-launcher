@@ -39,6 +39,9 @@
         "signingIdentity": null
       },
       "shortDescription": "",
+      "resources": [
+        "../app/**/*.json"
+      ],
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,

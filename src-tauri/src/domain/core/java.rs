@@ -4,6 +4,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use tauri::PathResolver;
 
 use crate::services::core::java;
 
@@ -43,9 +44,9 @@ impl JvmLocation {
 pub struct JvmLocationsInfo(pub Vec<JvmLocation>);
 
 impl Configurable for JvmLocationsInfo {
-    fn load(path: impl AsRef<Path>, save: bool) -> anyhow::Result<Self> {
+    fn load(resolver: PathResolver, path: impl AsRef<Path>, save: bool) -> anyhow::Result<Self> {
         println!("test");
-        let list: JvmLocationsInfo = load_config(path, save)?;
+        let list: JvmLocationsInfo = load_config(resolver, path, save)?;
 
         let filtered = list.0.into_iter().filter(java::check_valid_jvm).collect();
 
@@ -57,6 +58,7 @@ pub mod verified {
     use std::path::Path;
 
     use serde::{Deserialize, Serialize};
+    use tauri::PathResolver;
 
     use crate::domain::core::config::{load_config, Configurable};
 
@@ -72,8 +74,12 @@ pub mod verified {
     pub struct JvmRepo(pub Vec<JvmDownloadSource>);
 
     impl Configurable for JvmRepo {
-        fn load(path: impl AsRef<Path>, save: bool) -> anyhow::Result<Self> {
-            load_config(path, save)
+        fn load(
+            resolver: PathResolver,
+            path: impl AsRef<Path>,
+            save: bool,
+        ) -> anyhow::Result<Self> {
+            load_config(resolver, path, save)
         }
     }
 }

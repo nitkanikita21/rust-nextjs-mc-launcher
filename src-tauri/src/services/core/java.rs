@@ -1,12 +1,15 @@
 use std::path::PathBuf;
 
+use anyhow::Context;
+use tauri::PathResolver;
+
 use crate::domain::core::{
     config::Configurable,
     java::{JvmLocation, JvmLocationsInfo},
 };
 
-pub async fn get_available_jvms() -> JvmLocationsInfo {
-    JvmLocationsInfo::load("java/jvms.json", true).expect("error loading jvms list")
+pub fn get_available_jvms(resolver: PathResolver) -> anyhow::Result<JvmLocationsInfo> {
+    JvmLocationsInfo::load(resolver, "java/jvms.json", true).context("error loading jvms list")
 }
 
 pub fn get_javaw_executable(location: JvmLocation) -> PathBuf {
