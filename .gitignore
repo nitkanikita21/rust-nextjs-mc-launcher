@@ -35,4 +35,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-src-tauri\Cargo.lock
+**/*.lock
+src-tauri/target
