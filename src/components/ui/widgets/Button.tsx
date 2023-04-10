@@ -15,6 +15,8 @@ export const enum ButtonStyles {
   GREEN,
   RED,
   DISABLED,
+
+  CLEAR
 }
 
 export default function Button({ text, onClick = () => null, style = ButtonStyles.DEFAULT, children }: ButtonProps) {
@@ -34,6 +36,9 @@ export default function Button({ text, onClick = () => null, style = ButtonStyle
       break;
     case ButtonStyles.DISABLED:
       variantedStyle = styles.__disabled;
+      break;
+    case ButtonStyles.CLEAR:
+      variantedStyle = styles.__clear;
       break;
   }
 

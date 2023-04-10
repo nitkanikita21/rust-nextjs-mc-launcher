@@ -59,3 +59,17 @@
         background-color: $color-main-lighten;
     }
 }
+
+.__clear {
+    background: none;
+    color: white;
+    padding: 15px;
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+        box-shadow: rgba(0, 0, 0, 0.452) 0px 0px 15px;
+    }
+    &:active{
+        background: rgba(255, 255, 255, 0.05);
+    }
+}

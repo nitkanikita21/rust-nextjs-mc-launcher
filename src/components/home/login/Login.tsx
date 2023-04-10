@@ -31,8 +31,8 @@ export default function Login() {
   function login() {
     invoke<string>("login");
   }
-  function unlogin() {
-    invoke<string>("unlogin");
+  function logout() {
+    invoke<string>("logout");
   }
 
   useEffect(() => {
@@ -48,12 +48,12 @@ export default function Login() {
     });
   });
 
-  function openAcceptUnlogin() {
+  function openAcceptLogout() {
     setDialogActive(true);
   }
-  function acceptUnlogin() {
+  function acceptLogout() {
     setDialogActive(false);
-    unlogin();
+    logout();
   }
   function cancelUnlogin() {
     setDialogActive(false);
@@ -62,9 +62,8 @@ export default function Login() {
   let loginBtn = <></>;
   if (!logined) {
     loginBtn = <Button text={"Увійти"} onClick={login} style={ButtonStyles.GREEN} />;
-
   } else {
-    loginBtn = <Button text={nickname} onClick={openAcceptUnlogin} style={ButtonStyles.DEFAULT}>
+    loginBtn = <Button text={nickname} onClick={openAcceptLogout} style={ButtonStyles.DEFAULT}>
       {/* // eslint-disable-next-line @next/next/no-img-element */}
       <img src={skinUrl} alt="skin_url" className={styles.head_skin} />
     </Button>;
@@ -74,7 +73,7 @@ export default function Login() {
     <DialogContainer active={isDialogActive} title="Ви хочете вийти з аккаунту">
       <p className={styles.dialog_text}>Якщо ви це зробите, вам потрібно буде знову авторизовуватися в свій аккаунт</p>
       <div className={styles.dialog_btns}>
-        <Button text="Вийти" onClick={acceptUnlogin} style={ButtonStyles.RED} />
+        <Button text="Вийти" onClick={acceptLogout} style={ButtonStyles.RED} />
         <Button text="Назад" onClick={cancelUnlogin} style={ButtonStyles.DEFAULT} />
       </div>
     </DialogContainer>
