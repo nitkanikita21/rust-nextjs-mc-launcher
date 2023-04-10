@@ -1,39 +1,55 @@
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager, Runtime};
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Serialize)]
 struct ProgressBarDisplay {
     title: String,
     displayValue: String,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Serialize)]
 struct ProgressBarState {
     value: u8,
     display: ProgressBarDisplay,
 }
 
-#[derive(Deserialize, Clone)]
+#[derive(Serialize, Clone)]
 struct ProgressBarChangeState {
     barId: String,
-    state: ProgressBarState
-}
-
-pub struct ProgressBarUiLinker<'a> {
-    app_handle: &'a AppHandle,
-    id: String,
-
     state: ProgressBarState,
 }
 
-impl ProgressBarUiLinker<'_> {
-    pub fn new<'a>(app_handle: &'a AppHandle, id: String) -> Self {
+pub struct ProgressBarUiLinker<'a, R: Runtime> {
+    app_handle: &'a AppHandle<R>,
+    id: String,
+    title: String,
+}
+
+impl<'a, R: Runtime> ProgressBarUiLinker<'a, R> {
+    pub fn new(app_handle: &'a AppHandle<R>, id: String) -> Self {
         Self {
             app_handle,
             id,
-            state: ProgressBarState {
-                value: 0, display: ProgressBarDisplay { title: "".into(), displayValue: "".into() }
-            },
+            title: "".into(),
         }
+    }
+    pub fn title(&mut self, title: String) {
+        self.title = title;
+    }
+    pub fn push_value(&self, value: u8, display: String) -> Result<(), anyhow::Error> {
+        self.app_handle.emit_all(
+            "progress-bar-state-change",
+            ProgressBarChangeState {
+                barId: self.id.clone(),
+                state: ProgressBarState {
+                    value: value,
+                    display: ProgressBarDisplay {
+                        title: self.title.clone(),
+                        displayValue: display,
+                    },
+                },
+            },
+        )?;
+        Ok(())
     }
 }
