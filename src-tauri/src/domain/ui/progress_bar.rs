@@ -1,4 +1,4 @@
-use serde::{Serialize};
+use serde::Serialize;
 use tauri::{AppHandle, Manager, Runtime};
 
 #[derive(Clone, Serialize)]
@@ -33,9 +33,11 @@ impl<'a, R: Runtime> ProgressBarUiLinker<'a, R> {
             title: "".into(),
         }
     }
+
     pub fn title(&mut self, title: String) {
         self.title = title;
     }
+
     pub fn push_value(&self, value: u8, display: String) -> Result<(), anyhow::Error> {
         self.app_handle.emit_all(
             "progress-bar-state-change",

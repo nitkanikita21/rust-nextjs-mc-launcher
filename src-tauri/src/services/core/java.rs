@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Context;
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use tauri::PathResolver;
 
 use crate::domain::core::{
@@ -17,19 +18,7 @@ pub fn get_javaw_executable(location: JvmLocation) -> PathBuf {
 }
 
 pub fn check_valid_jvm(location: &JvmLocation) -> bool {
-    if !location.path.join("release").exists() {
-        return false;
-    }
-
-    if !location.path.join("bin").exists() {
-        return false;
-    }
-    if !location.path.join("bin/java").exists() {
-        return false;
-    }
-    if !location.path.join("bin/javaw").exists() {
-        return false;
-    }
-
-    true
+    ["release", "bin", "bin/java", "bin/javaw"]
+        .into_par_iter()
+        .all(|path| location.path.join(path).exists())
 }

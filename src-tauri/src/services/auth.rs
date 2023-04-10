@@ -171,7 +171,6 @@ pub async fn login_in_ms<R: Runtime>(
         });
 
         oauth2_window.close()?;
-
     }
 
     Ok(())

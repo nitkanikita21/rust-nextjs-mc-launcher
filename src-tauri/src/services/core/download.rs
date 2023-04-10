@@ -1,44 +1,35 @@
-use std::{
-    cmp::min,
-    fs::File,
-    io::{Write},
-    path::PathBuf,
-};
+use std::{cmp::min, fs::File, io::Write, path::PathBuf};
 
+use anyhow::{anyhow, Context};
 use futures_util::stream::StreamExt;
 
-async fn download_file<F>(
-    url: String,
+async fn download_file<'url, U, F>(
+    url: &str,
     path: PathBuf,
     mut callback: Option<F>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+) -> anyhow::Result<()>
 where
     F: FnMut(u64),
 {
     // Reqwest setup
-    let res = reqwest::Client::builder()
-        .build()?
-        .get(&url)
-        .send()
-        .await
-        .or(Err(format!("Failed to GET from '{}'", &url)))?;
+    let res = reqwest::Client::builder().build()?.get(url).send().await?;
     let total_size = res
         .content_length()
-        .ok_or(format!("Failed to get content length from '{}'", &url))?;
+        .ok_or(anyhow!("Failed to get content length from '{url}'"))?;
 
-    let mut file = File::create(path).or(Err("Failed to create file "))?;
+    let mut file = File::create(path)?;
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
 
     while let Some(item) = stream.next().await {
-        let chunk = item.or(Err("Error while downloading file".to_string()))?;
+        let chunk = item.context("Error while downloading file")?;
         file.write_all(&chunk)
-            .or(Err("Error while writing to file".to_string()))?;
+            .context("Error while writing to file")?;
         let new = min(downloaded + (chunk.len() as u64), total_size);
         downloaded = new;
 
-        if callback.is_some() {
-            callback.as_mut().unwrap()(downloaded)
+        if let Some(callback) = callback.as_mut() {
+            callback(downloaded)
         }
     }
 

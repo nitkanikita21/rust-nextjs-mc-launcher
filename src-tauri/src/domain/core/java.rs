@@ -14,7 +14,7 @@ use super::config::{load_config, Configurable};
 pub struct JvmInfo {
     java_version: u8,
     name: String,
-    id: String
+    id: String,
 }
 impl Display for JvmInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

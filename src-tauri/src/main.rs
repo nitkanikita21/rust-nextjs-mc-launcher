@@ -12,7 +12,7 @@ async fn main() {
     tauri::Builder::default()
         .setup(|app| {
             let resolver = app.path_resolver();
-            let jvms = services::core::java::get_available_jvms(resolver);
+            let jvms = services::core::java::get_available_jvms(resolver)?;
             println!("{:?}", jvms);
             Ok(())
         })
@@ -22,7 +22,6 @@ async fn main() {
             command::login::get_username,
             command::login::is_logged_in,
             command::login::get_user_head_render_url,
-
             command::core::java::get_available_jvms
         ])
         .run(tauri::generate_context!())

@@ -1,2 +1,1 @@
-pub mod progressBar;
-
+pub mod progress_bar;
