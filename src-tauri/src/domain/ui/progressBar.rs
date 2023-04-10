@@ -1,10 +1,10 @@
-use serde::{Deserialize, Serialize};
+use serde::{Serialize};
 use tauri::{AppHandle, Manager, Runtime};
 
 #[derive(Clone, Serialize)]
 struct ProgressBarDisplay {
     title: String,
-    displayValue: String,
+    display_value: String,
 }
 
 #[derive(Clone, Serialize)]
@@ -15,7 +15,7 @@ struct ProgressBarState {
 
 #[derive(Serialize, Clone)]
 struct ProgressBarChangeState {
-    barId: String,
+    bar_id: String,
     state: ProgressBarState,
 }
 
@@ -40,12 +40,12 @@ impl<'a, R: Runtime> ProgressBarUiLinker<'a, R> {
         self.app_handle.emit_all(
             "progress-bar-state-change",
             ProgressBarChangeState {
-                barId: self.id.clone(),
+                bar_id: self.id.clone(),
                 state: ProgressBarState {
-                    value: value,
+                    value,
                     display: ProgressBarDisplay {
                         title: self.title.clone(),
-                        displayValue: display,
+                        display_value: display,
                     },
                 },
             },
