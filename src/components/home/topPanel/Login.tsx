@@ -4,7 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
 
 import Button, { ButtonStyles } from "../../ui/widgets/Button";
-import styles from "@/styles/home/login/Login.module.scss";
+import styles from "@/styles/home/topPanel/Login.module.scss";
 import DialogContainer from "@/components/ui/DialogContainer";
 
 export default function Login() {

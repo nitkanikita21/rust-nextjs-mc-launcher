@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import styles from "@/styles/home/TopPanel.module.scss";
-import Login from "./login/Login";
+import Login from "./topPanel/Login";
+import Settings from "./topPanel/Settings";
 
 
 export default function TopPanel() {
@@ -12,6 +13,7 @@ export default function TopPanel() {
       </div>
 
       <div className={styles.button_container}>
+        <Settings/>
         <Login/>
       </div>
     </div>

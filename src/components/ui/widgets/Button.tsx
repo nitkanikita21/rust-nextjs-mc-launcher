@@ -3,7 +3,7 @@ import classNames from "classnames";
 import React from "react";
 
 type ButtonProps = {
-  text: string,
+  text?: string,
   onClick?: () => void,
   style?: ButtonStyles,
   children?: React.ReactNode,
@@ -19,7 +19,7 @@ export const enum ButtonStyles {
   CLEAR
 }
 
-export default function Button({ text, onClick = () => null, style = ButtonStyles.DEFAULT, children }: ButtonProps) {
+export default function Button({ text = "", onClick = () => null, style = ButtonStyles.DEFAULT, children }: ButtonProps) {
 
   // eslint-disable-next-line prefer-const
   let variantedStyle: string = "";
