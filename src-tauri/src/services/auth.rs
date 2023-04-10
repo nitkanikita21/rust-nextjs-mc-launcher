@@ -22,8 +22,8 @@ lazy_static::lazy_static! {
     pub static ref HTTP_CLIENT: reqwest::Client = reqwest::Client::new();
 }
 
-fn get_mcapi_endpoint_url(endpoint: &str) -> String {
-    format!("{}{}", MINECRAFT_API_URL, "/minecraft/profile").to_string()
+fn get_mcapi_endpoint_url(_endpoint: &str) -> String {
+    format!("{}{}", MINECRAFT_API_URL, "/minecraft/profile")
 }
 
 pub async fn get_profile_info(
@@ -83,7 +83,7 @@ pub async fn login_in_ms<R: Runtime>(
     let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
 
     // Generate the authorization URL to which we'll redirect the user.
-    let (authorize_url, csrf_state) = client
+    let (authorize_url, _csrf_state) = client
         .authorize_url(CsrfToken::new_random)
         .add_scope(Scope::new("XboxLive.signin offline_access".to_string()))
         .set_pkce_challenge(pkce_code_challenge)
@@ -106,12 +106,12 @@ pub async fn login_in_ms<R: Runtime>(
 
     // A very naive implementation of the redirect server.
     let listener = TcpListener::bind("127.0.0.1:8114").await?;
-    loop {
+    {
         let (stream, _) = listener.accept().await?;
         stream.readable().await?;
         let mut stream = BufReader::new(stream);
 
-        let (code, state): (AuthorizationCode, CsrfToken) = {
+        let (code, _state): (AuthorizationCode, CsrfToken) = {
             let mut request_line = String::new();
             stream.read_line(&mut request_line).await?;
 
@@ -167,12 +167,11 @@ pub async fn login_in_ms<R: Runtime>(
         *login = Some(domain::login::LoginInfo {
             access_token: mc_token.access_token().clone(),
             username: mc_token.username().clone(),
-            profile: get_profile_info(&mc_token.access_token()).await.unwrap(),
+            profile: get_profile_info(mc_token.access_token()).await.unwrap(),
         });
 
         oauth2_window.close()?;
 
-        break;
     }
 
     Ok(())

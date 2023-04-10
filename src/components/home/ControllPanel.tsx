@@ -2,7 +2,6 @@ import classNames from "classnames";
 
 import styles from "@/styles/home/ControllPanel.module.scss";
 
-import Button, { ButtonStyles } from "../ui/widgets/Button";
 import ProgressBar from "../ui/widgets/ProgressBar";
 
 

@@ -14,13 +14,13 @@ use super::config::{load_config, Configurable};
 pub struct JvmInfo {
     java_version: u8,
     name: String,
-    full_name: String,
+    id: String
 }
 impl Display for JvmInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}-{}", self.name, self.java_version)?;
-        if self.full_name != self.name {
-            write!(f, "({})", self.full_name)?;
+        write!(f, "{}-{}", self.id, self.java_version)?;
+        if self.name != self.id {
+            write!(f, "({})", self.name)?;
         }
 
         Ok(())

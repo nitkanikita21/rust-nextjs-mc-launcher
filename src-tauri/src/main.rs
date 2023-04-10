@@ -21,7 +21,9 @@ async fn main() {
             command::login::logout,
             command::login::get_username,
             command::login::is_logged_in,
-            command::login::get_user_head_render_url
+            command::login::get_user_head_render_url,
+
+            command::core::java::get_available_jvms
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
